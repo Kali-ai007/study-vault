@@ -14,6 +14,10 @@ An offline-first Electron study planner inspired by Shovel/Todoist workflows, bu
 - Local Ollama-powered quiz generation and stats analysis.
 - Backup and restore of Study Vault data.
 
+## Documentation
+
+See [Architecture And UML Documentation](docs/ARCHITECTURE_AND_UML.md) for the system overview, use cases, activity diagrams, sequence diagrams, class diagram, state diagrams, deployment diagram, data flows, and QA flow.
+
 ## Development
 
 ```bash
