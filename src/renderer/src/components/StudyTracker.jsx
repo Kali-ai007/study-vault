@@ -224,7 +224,7 @@ function TaskDetailModal({ task, draft, setDraft, onClose, onSave, onComplete, o
           <button className="ghost-icon big" onClick={onClose} aria-label="Close task details">x</button>
         </div>
 
-        <div className="task-progress-card">
+        <div className="task-progress-card modal-section">
           <div>
             <span>Remaining</span>
             <strong>{minutesLabel(remaining)}</strong>
@@ -240,7 +240,7 @@ function TaskDetailModal({ task, draft, setDraft, onClose, onSave, onComplete, o
           <div className="progress wide"><span style={{ width: `${pct}%` }} /></div>
         </div>
 
-        <div className="quick-log-panel">
+        <div className="quick-log-panel modal-section">
           <div>
             <h3>Track progress</h3>
             <p className="muted">
@@ -271,35 +271,44 @@ function TaskDetailModal({ task, draft, setDraft, onClose, onSave, onComplete, o
           </div>
         </div>
 
-        <div className="modal-form">
-          <label>
-            Title
-            <input className="field" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} />
-          </label>
-          <label>
-            Due date
-            <input className="field" type="date" value={draft.due_date || ''} onChange={e => setDraft({ ...draft, due_date: e.target.value || null })} />
-          </label>
-          <label>
-            Estimate minutes
-            <input className="field" type="number" min="5" step="5" value={draft.estimate_minutes} onChange={e => setDraft({ ...draft, estimate_minutes: Number(e.target.value || 0) })} />
-          </label>
-          <label>
-            Priority
-            <select className="field" value={draft.priority} onChange={e => setDraft({ ...draft, priority: Number(e.target.value) })}>
-              <option value={1}>P1 urgent</option>
-              <option value={2}>P2 high</option>
-              <option value={3}>P3 normal</option>
-              <option value={4}>P4 low</option>
-            </select>
-          </label>
-          <label className="span-2">
-            Notes / content preview
-            <textarea className="field" rows="5" value={draft.notes || ''} onChange={e => setDraft({ ...draft, notes: e.target.value })} />
+        <div className="task-edit-grid">
+          <div className="modal-section task-settings-panel">
+            <div className="modal-section-head">
+              <h3>Task settings</h3>
+              <p>Change the date, estimate, and priority without losing the imported content.</p>
+            </div>
+            <div className="modal-form compact-form">
+              <label className="span-2">
+                Title
+                <input className="field" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} />
+              </label>
+              <label>
+                Due date
+                <input className="field" type="date" value={draft.due_date || ''} onChange={e => setDraft({ ...draft, due_date: e.target.value || null })} />
+              </label>
+              <label>
+                Priority
+                <select className="field" value={draft.priority} onChange={e => setDraft({ ...draft, priority: Number(e.target.value) })}>
+                  <option value={1}>P1 urgent</option>
+                  <option value={2}>P2 high</option>
+                  <option value={3}>P3 normal</option>
+                  <option value={4}>P4 low</option>
+                </select>
+              </label>
+              <label className="span-2">
+                Estimate minutes
+                <input className="field" type="number" min="5" step="5" value={draft.estimate_minutes} onChange={e => setDraft({ ...draft, estimate_minutes: Number(e.target.value || 0) })} />
+              </label>
+            </div>
+          </div>
+
+          <label className="modal-section content-preview-panel">
+            <span>Notes / content preview</span>
+            <textarea className="field" rows="7" value={draft.notes || ''} onChange={e => setDraft({ ...draft, notes: e.target.value })} />
           </label>
         </div>
 
-        <div className="subtask-panel">
+        <div className="subtask-panel modal-section">
           <div className="panel-title-row">
             <div>
               <h3>Subtasks</h3>
@@ -791,7 +800,7 @@ export default function StudyTracker({ examDate: appExamDate, onExamDateChange, 
   const planMeta = plan?.meta || {}
 
   return (
-    <div className="page wide">
+    <div className="page wide today-page">
       <div className="page-header split">
         <div>
           <h1>Today</h1>
@@ -840,36 +849,8 @@ export default function StudyTracker({ examDate: appExamDate, onExamDateChange, 
             <h2>Shovel-style plan</h2>
             <p>Turns due dates into do dates by fitting your tasks into study windows.</p>
           </div>
-          <div className="planner-controls">
-            <div className="reset-actions">
-              <button className="secondary-btn compact" onClick={() => resetStudyData('tasks')}>Clear tasks</button>
-              <button className="secondary-btn compact" onClick={() => resetStudyData('logs')}>Clear logs</button>
-              <button className="secondary-btn compact" onClick={() => resetStudyData('progress')}>Reset progress</button>
-              <button className="danger-btn compact" onClick={() => resetStudyData('full')}>Full reset</button>
-            </div>
-            <label>
-              Weekdays
-              <span>
-                <input type="time" value={planSettings?.weekday_start || '18:00'} onChange={e => savePlanSettings({ weekday_start: e.target.value })} />
-                <input type="time" value={planSettings?.weekday_end || '22:00'} onChange={e => savePlanSettings({ weekday_end: e.target.value })} />
-              </span>
-            </label>
-            <label>
-              Weekends
-              <span>
-                <input type="time" value={planSettings?.weekend_start || '09:00'} onChange={e => savePlanSettings({ weekend_start: e.target.value })} />
-                <input type="time" value={planSettings?.weekend_end || '13:00'} onChange={e => savePlanSettings({ weekend_end: e.target.value })} />
-              </span>
-            </label>
-            <label className="planner-toggle">
-              <input
-                type="checkbox"
-                checked={Boolean(planSettings?.use_calibrated_estimates)}
-                onChange={e => savePlanSettings({ use_calibrated_estimates: e.target.checked })}
-              />
-              Use estimate calibration
-            </label>
-            <button className="primary-btn" onClick={generatePlan} disabled={planning}>
+          <div className="planner-primary-actions">
+            <button className="primary-btn planner-auto-btn" onClick={generatePlan} disabled={planning}>
               {planning ? 'Planning...' : 'Auto-plan'}
             </button>
           </div>
@@ -909,7 +890,44 @@ export default function StudyTracker({ examDate: appExamDate, onExamDateChange, 
           </div>
         </div>
 
-        <div className="fixed-events-panel">
+        <details className="planner-advanced">
+          <summary>
+            <span>Plan settings and schedule blocks</span>
+            <em>Study windows, fixed blocks, exceptions, and reset tools</em>
+          </summary>
+          <div className="planner-advanced-body">
+            <div className="planner-controls planner-settings-row">
+              <label>
+                Weekdays
+                <span>
+                  <input type="time" value={planSettings?.weekday_start || '18:00'} onChange={e => savePlanSettings({ weekday_start: e.target.value })} />
+                  <input type="time" value={planSettings?.weekday_end || '22:00'} onChange={e => savePlanSettings({ weekday_end: e.target.value })} />
+                </span>
+              </label>
+              <label>
+                Weekends
+                <span>
+                  <input type="time" value={planSettings?.weekend_start || '09:00'} onChange={e => savePlanSettings({ weekend_start: e.target.value })} />
+                  <input type="time" value={planSettings?.weekend_end || '13:00'} onChange={e => savePlanSettings({ weekend_end: e.target.value })} />
+                </span>
+              </label>
+              <label className="planner-toggle">
+                <input
+                  type="checkbox"
+                  checked={Boolean(planSettings?.use_calibrated_estimates)}
+                  onChange={e => savePlanSettings({ use_calibrated_estimates: e.target.checked })}
+                />
+                Use estimate calibration
+              </label>
+              <div className="reset-actions">
+                <button className="secondary-btn compact" onClick={() => resetStudyData('tasks')}>Clear tasks</button>
+                <button className="secondary-btn compact" onClick={() => resetStudyData('logs')}>Clear logs</button>
+                <button className="secondary-btn compact" onClick={() => resetStudyData('progress')}>Reset progress</button>
+                <button className="danger-btn compact" onClick={() => resetStudyData('full')}>Full reset</button>
+              </div>
+            </div>
+
+            <div className="fixed-events-panel">
           <form className="fixed-event-form" onSubmit={addFixedEvent}>
             <label>
               {editingEventId ? 'Editing block' : 'Fixed block'}
@@ -1001,45 +1019,75 @@ export default function StudyTracker({ examDate: appExamDate, onExamDateChange, 
               ))}
             </div>
           )}
-        </div>
+            </div>
+          </div>
+        </details>
 
         <div className="week-plan">
-          {(plan?.days || []).slice(0, 7).map(day => (
-            <div key={day.date} className="plan-day">
-              <div className="plan-day-head">
-                <strong>{dayLabel(day.date)}</strong>
-                <span>{hoursLabel(day.available)} available</span>
-              </div>
-              <div className="plan-blocks">
-                {(day.fixed_events || []).map(event => (
-                  <div key={`fixed-${event.id}`} className="fixed-block">
-                    <span>{event.start_label} - {event.end_label}</span>
-                    <strong>{event.title}</strong>
+          {(plan?.days || []).slice(0, 7).map(day => {
+            const plannedMinutes = (day.blocks || []).reduce((sum, block) => sum + (block.end_minute - block.start_minute), 0)
+            const freeMinutes = Number(day.free_after_plan ?? Math.max(0, Number(day.available || 0) - plannedMinutes))
+            const dayStatus = plannedMinutes > Number(day.available || 0)
+              ? 'overloaded'
+              : plannedMinutes > 0 && freeMinutes < 30
+                ? 'tight'
+                : plannedMinutes > 0
+                  ? 'ready'
+                  : 'open'
+            const statusLabel = {
+              overloaded: 'Overloaded',
+              tight: 'Tight',
+              ready: 'Ready',
+              open: 'Open'
+            }[dayStatus]
+
+            return (
+              <div key={day.date} className={`plan-day ${dayStatus}`}>
+                <div className="plan-day-head">
+                  <div>
+                    <strong>{dayLabel(day.date)}</strong>
+                    <span>{hoursLabel(day.available)} available</span>
                   </div>
-                ))}
-                {(day.exceptions || []).map(event => (
-                  <div key={`exception-${event.id}`} className="exception-block">
-                    <span>{event.start_label} - {event.end_label}</span>
-                    <strong>{event.title}</strong>
-                  </div>
-                ))}
-                {day.blocks.length === 0 ? (
-                  <div className="free-block">Free study time</div>
-                ) : day.blocks.map(block => (
-                  <button key={block.id} className="planned-block" onClick={() => setActiveTaskId(block.task_id)}>
-                    <span>{block.start_label} - {block.end_label}</span>
-                    <strong>{block.title}</strong>
-                    {block.course_name && <em>{block.course_name}</em>}
-                  </button>
-                ))}
+                  <em>{statusLabel}</em>
+                </div>
+                <div className="plan-blocks">
+                  {(day.fixed_events || []).map(event => (
+                    <div key={`fixed-${event.id}`} className="fixed-block">
+                      <span>{event.start_label} - {event.end_label}</span>
+                      <strong>{event.title}</strong>
+                    </div>
+                  ))}
+                  {(day.exceptions || []).map(event => (
+                    <div key={`exception-${event.id}`} className="exception-block">
+                      <span>{event.start_label} - {event.end_label}</span>
+                      <strong>{event.title}</strong>
+                    </div>
+                  ))}
+                  {day.blocks.length === 0 ? (
+                    <div className="free-block">Free study time</div>
+                  ) : day.blocks.map(block => (
+                    <button key={block.id} className="planned-block" onClick={() => setActiveTaskId(block.task_id)}>
+                      <span>{block.start_label} - {block.end_label}</span>
+                      <strong>{block.title}</strong>
+                      {block.course_name && <em>{block.course_name}</em>}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
       <div className="planner-grid">
         <section className="panel task-panel">
+          <div className="panel-title-row task-panel-title">
+            <div>
+              <h2>Task queue</h2>
+              <p>Open a planned card above or filter the list below to adjust today’s work.</p>
+            </div>
+            <span>{filteredTasks.length}/{visibleTasks.length}</span>
+          </div>
           <div className="filter-row">
             {FILTERS.map(item => (
               <button key={item.id} onClick={() => setFilter(item.id)} className={filter === item.id ? 'active' : ''}>
@@ -1075,7 +1123,6 @@ export default function StudyTracker({ examDate: appExamDate, onExamDateChange, 
                 Clear
               </button>
             )}
-            <span>{filteredTasks.length}/{visibleTasks.length}</span>
           </div>
 
           {filteredTasks.length === 0 ? (

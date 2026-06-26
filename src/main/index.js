@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, screen } from 'electron'
 import { join } from 'path'
 import { createRequire } from 'module'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -11,6 +11,14 @@ const require = createRequire(import.meta.url)
 const pdfParse = require('pdf-parse')
 
 let mainWindow
+
+function getInitialWindowBounds() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize
+  return {
+    width: Math.min(width, Math.max(1040, Math.round(width * 0.82))),
+    height: Math.min(height, Math.max(680, Math.round(height * 0.86)))
+  }
+}
 
 function cleanLine(raw) {
   let line = String(raw || '').replace(/\u00a0/g, ' ').trim()
@@ -134,6 +142,91 @@ function parseObjectiveCourse(rawText) {
     .filter(section => section.title && section.content.length > 15)
 }
 
+function normalizePrintedHeading(raw) {
+  return String(raw || '')
+    .replace(/(?:\.\s*){2,}\s*\d+\s*$/, '')
+    .replace(/^\d+(?=[A-Z])/, '')
+    .replace(/\s+\d+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function extractTocHeadings(lines) {
+  const headings = []
+  const seen = new Set()
+  const tocWindow = lines.slice(0, 140)
+
+  for (const line of tocWindow) {
+    const hasDotLeader = /(?:\.\s*){2,}\s*\d+\s*$/.test(line)
+    const looksLikeChapter = /^[A-Z][A-Za-z ,'-]{5,70}\s+\d+$/.test(line)
+    if (!hasDotLeader && !looksLikeChapter) continue
+
+    const heading = normalizePrintedHeading(line)
+    if (!heading || /^contents$/i.test(heading) || heading.length < 4 || heading.length > 90) continue
+
+    const key = heading.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    headings.push(heading)
+  }
+
+  return headings
+}
+
+function parseTocCourse(rawText) {
+  const rawLines = cleanPdfText(rawText)
+  const headings = extractTocHeadings(rawLines)
+  const lines = rawLines
+    .map(normalizePrintedHeading)
+    .filter(Boolean)
+  if (headings.length < 5) return null
+
+  const headingSet = new Set(headings.map(heading => heading.toLowerCase()))
+  const seenHeadings = new Set()
+  let startIndex = -1
+
+  for (let i = 0; i < lines.length; i++) {
+    const key = lines[i].toLowerCase()
+    if (!headingSet.has(key)) continue
+    if (seenHeadings.has(key)) {
+      startIndex = i
+      break
+    }
+    seenHeadings.add(key)
+  }
+
+  if (startIndex < 0) return null
+
+  const sections = []
+  let current = null
+
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i]
+    const key = line.toLowerCase()
+
+    if (headingSet.has(key)) {
+      if (current?.title.toLowerCase() === key) continue
+      if (current && current.content.trim().length > 40) sections.push(current)
+      current = { title: line, content: '' }
+      continue
+    }
+
+    if (!current) continue
+    if (/^\d+$/.test(line)) continue
+    if (/^contents$/i.test(line)) continue
+    appendContent(current, line)
+  }
+
+  if (current && current.content.trim().length > 40) sections.push(current)
+
+  return sections
+    .map(section => ({
+      title: section.title,
+      content: section.content.trim()
+    }))
+    .filter(section => section.title && section.content.length > 40)
+}
+
 function parseParagraphCourse(rawText) {
   const paragraphs = cleanPdfText(rawText)
     .join('\n')
@@ -177,6 +270,11 @@ function parseCourseContent(name, rawText) {
     return { method: 'objective headings', topics: objectiveSections }
   }
 
+  const tocSections = parseTocCourse(rawText)
+  if (tocSections?.length >= 5) {
+    return { method: 'table of contents headings', topics: tocSections }
+  }
+
   return { method: 'paragraph chunks', topics: parseParagraphCourse(rawText) }
 }
 
@@ -187,9 +285,24 @@ function extractJsonArray(text) {
   return JSON.parse(text.slice(start, end))
 }
 
+const OLLAMA_BASE_URL = 'http://127.0.0.1:11434'
+
+async function fetchOllama(path, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(`${OLLAMA_BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function getOllamaStatus() {
   try {
-    const response = await fetch('http://localhost:11434/api/tags')
+    const response = await fetchOllama('/api/tags', {}, 8000)
     if (!response.ok) throw new Error('Ollama API did not respond')
     const data = await response.json()
     const models = Array.isArray(data.models) ? data.models.map(model => model.name) : []
@@ -226,7 +339,7 @@ async function getOllamaStatus() {
       code: 'offline',
       model: null,
       models: [],
-      message: 'Ollama is not reachable on localhost:11434.',
+      message: 'Ollama is not reachable on 127.0.0.1:11434.',
       action: 'Open Ollama or run: ollama serve',
       error: err.message
     }
@@ -303,11 +416,11 @@ File: ${name}
 Material:
 ${sample}`
 
-  const response = await fetch('http://localhost:11434/api/generate', {
+  const response = await fetchOllama('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: status.model, prompt, stream: false })
-  })
+  }, 180000)
 
   if (!response.ok) throw new Error('Ollama generation failed. Check the selected local model.')
   const data = await response.json()
@@ -315,12 +428,13 @@ ${sample}`
 }
 
 function createWindow() {
+  const initialBounds = getInitialWindowBounds()
+
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 900,
-    minHeight: 600,
-    backgroundColor: '#0f1117',
+    ...initialBounds,
+    minWidth: 720,
+    minHeight: 560,
+    backgroundColor: '#f6f8ff',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -415,11 +529,11 @@ app.whenReady().then(() => {
       if (!status.ok) throw new Error(status.action || status.message)
       const prompt = `You are a study quiz generator. Given the following course content, generate exactly ${count} multiple-choice questions. Return ONLY a JSON array with objects: { question, options: [A,B,C,D], answer, explanation }. No extra text.\n\nContent:\n${content.slice(0, 3000)}`
 
-      const response = await fetch('http://localhost:11434/api/generate', {
+      const response = await fetchOllama('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: status.model, prompt, stream: false })
-      })
+      }, 180000)
 
       if (!response.ok) throw new Error('Ollama generation failed. Check the selected local model.')
       const data = await response.json()
@@ -446,8 +560,6 @@ app.whenReady().then(() => {
       const status = await getOllamaStatus()
       if (!status.ok) throw new Error(status.action || status.message)
       const compact = JSON.stringify(analytics).slice(0, 12000)
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 180000)
       const prompt = `You are Study Vault's local academic analytics coach.
 Analyze the student's Study Vault JSON and give a practical, numbers-first report.
 Use readiness.score, readiness.factors, pace, courseRows, weakQuizTopics, completions, and totals when present.
@@ -478,13 +590,11 @@ Return concise markdown with exactly these sections:
 Data:
 ${compact}`
 
-      const response = await fetch('http://localhost:11434/api/generate', {
+      const response = await fetchOllama('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: status.model, prompt, stream: false }),
-        signal: controller.signal
-      })
-      clearTimeout(timeout)
+        body: JSON.stringify({ model: status.model, prompt, stream: false })
+      }, 180000)
 
       if (!response.ok) throw new Error('Ollama generation failed. Check the selected local model.')
       const data = await response.json()

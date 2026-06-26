@@ -219,31 +219,34 @@ export default function StatsDashboard({ onDataChange }) {
   }, [plan])
 
   return (
-    <div className="page wide">
+    <div className="page wide stats-page">
       <div className="page-header split">
         <div>
           <h1>Stats</h1>
           <p>Progress, workload, cushion, and study consistency in one place.</p>
         </div>
-        <div className="reset-actions">
-          <button className="secondary-btn compact" onClick={exportBackup}>Export backup</button>
-          <button className="secondary-btn compact" onClick={() => restoreInputRef.current?.click()}>Restore</button>
-          <input
-            ref={restoreInputRef}
-            className="hidden-file-input"
-            type="file"
-            accept="application/json,.json"
-            onChange={e => restoreBackup(e.target.files?.[0])}
-          />
-          <button className="secondary-btn compact" onClick={() => resetStudyData('tasks')}>Clear tasks</button>
-          <button className="secondary-btn compact" onClick={() => resetStudyData('logs')}>Clear logs</button>
-          <button className="secondary-btn compact" onClick={() => resetStudyData('progress')}>Reset progress</button>
-          <button className="danger-btn compact" onClick={() => resetStudyData('full')}>Full reset</button>
+        <div className="stats-management">
+          <span>Data controls</span>
+          <div className="reset-actions">
+            <button className="secondary-btn compact" onClick={exportBackup}>Export backup</button>
+            <button className="secondary-btn compact" onClick={() => restoreInputRef.current?.click()}>Restore</button>
+            <input
+              ref={restoreInputRef}
+              className="hidden-file-input"
+              type="file"
+              accept="application/json,.json"
+              onChange={e => restoreBackup(e.target.files?.[0])}
+            />
+            <button className="secondary-btn compact" onClick={() => resetStudyData('tasks')}>Clear tasks</button>
+            <button className="secondary-btn compact" onClick={() => resetStudyData('logs')}>Clear logs</button>
+            <button className="secondary-btn compact" onClick={() => resetStudyData('progress')}>Reset progress</button>
+            <button className="danger-btn compact" onClick={() => resetStudyData('full')}>Full reset</button>
+          </div>
         </div>
       </div>
       {msg && <div className="info-msg page-msg">{msg}</div>}
 
-      <div className="metric-grid">
+      <div className="metric-grid key-metrics">
         <div className="metric-card"><span>Courses</span><strong>{courses.length}</strong></div>
         <div className="metric-card"><span>Open tasks</span><strong>{taskBreakdown.open}</strong></div>
         <div className="metric-card"><span>Completed tasks</span><strong>{taskBreakdown.done}</strong></div>
@@ -251,7 +254,7 @@ export default function StatsDashboard({ onDataChange }) {
         <div className="metric-card readiness-mini"><span>Readiness</span><strong>{totals.readinessScore || 0}%</strong></div>
       </div>
 
-      <div className="metric-grid analytics-metrics">
+      <div className="metric-grid analytics-metrics detail-metrics">
         <div className="metric-card"><span>Completion rate</span><strong>{totals.completionRate || 0}%</strong></div>
         <div className="metric-card"><span>Linked sessions</span><strong>{totals.linkedSessions || 0}/{totals.sessions || 0}</strong></div>
         <div className="metric-card"><span>Avg session</span><strong>{hoursLabel(totals.averageSessionMinutes || 0)}</strong></div>

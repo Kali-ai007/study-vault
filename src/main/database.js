@@ -48,6 +48,40 @@ function nextId(items) {
   return Math.max(...items.map(i => i.id)) + 1
 }
 
+function defaultCourseSettings() {
+  return {
+    difficulty: 'normal',
+    priority: 3,
+    target_score: 85,
+    reading_speed: 110,
+    quiz_frequency: 'normal'
+  }
+}
+
+function normalizeCourseSettings(settings = {}) {
+  const difficulty = ['easy', 'normal', 'hard', 'exam'].includes(settings.difficulty)
+    ? settings.difficulty
+    : 'normal'
+  const quizFrequency = ['low', 'normal', 'high'].includes(settings.quiz_frequency)
+    ? settings.quiz_frequency
+    : 'normal'
+
+  return {
+    difficulty,
+    priority: Math.max(1, Math.min(4, Number(settings.priority || 3))),
+    target_score: Math.max(50, Math.min(100, Number(settings.target_score || 85))),
+    reading_speed: Math.max(50, Math.min(260, Number(settings.reading_speed || 110))),
+    quiz_frequency: quizFrequency
+  }
+}
+
+function normalizeCourse(course) {
+  return {
+    ...course,
+    study_settings: normalizeCourseSettings(course.study_settings)
+  }
+}
+
 function taskSourceKey(data) {
   if (data.source_key) return data.source_key
   if (data.topic_id || data.topicId) {
@@ -736,14 +770,42 @@ export function initDatabase() {
 export function dbHandlers(ipcMain) {
   // Courses
   ipcMain.handle('db:getCourses', () =>
-    list('courses').sort((a, b) => b.id - a.id)
+    list('courses').map(normalizeCourse).sort((a, b) => b.id - a.id)
   )
 
   ipcMain.handle('db:createCourse', (_, { name, description }) => {
     const courses = list('courses')
-    const course = { id: nextId(courses), name, description, created_at: new Date().toISOString() }
+    const course = {
+      id: nextId(courses),
+      name,
+      description,
+      study_settings: defaultCourseSettings(),
+      created_at: new Date().toISOString()
+    }
     store.set('courses', [...courses, course])
-    return course
+    return normalizeCourse(course)
+  })
+
+  ipcMain.handle('db:updateCourse', (_, { id, patch = {} }) => {
+    const numericId = Number(id)
+    let updated = null
+    const courses = list('courses').map(course => {
+      if (course.id !== numericId) return course
+
+      const next = {
+        ...course,
+        ...(typeof patch.name === 'string' ? { name: patch.name } : {}),
+        ...(typeof patch.description === 'string' ? { description: patch.description } : {}),
+        ...(patch.study_settings
+          ? { study_settings: normalizeCourseSettings({ ...course.study_settings, ...patch.study_settings }) }
+          : {})
+      }
+      updated = next
+      return next
+    })
+
+    store.set('courses', courses)
+    return updated ? normalizeCourse(updated) : null
   })
 
   ipcMain.handle('db:deleteCourse', (_, id) => {

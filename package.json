@@ -2,24 +2,32 @@
   "name": "study-vault",
   "version": "1.0.0",
   "description": "Customizable study app with course upload and AI quiz generation",
+  "author": "Kali-ai007",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
+    "test:e2e": "npm run build && node scripts/e2e-smoke.cjs",
+    "test:ai": "npm run build && node scripts/ai-smoke.cjs",
+    "test:backup": "npm run build && node scripts/backup-smoke.cjs",
+    "test:pdf": "npm run build && node scripts/pdf-import-smoke.cjs",
     "package:win": "npm run build && electron-builder --win --publish never"
   },
   "build": {
     "appId": "com.studyvault.app",
     "productName": "Study Vault",
-    "directories": { "output": "dist" },
+    "directories": {
+      "output": "dist"
+    },
     "win": {
       "target": "nsis",
-      "icon": "resources/icon.ico"
+      "icon": "resources/icon.ico",
+      "signAndEditExecutable": false
     },
     "publish": {
       "provider": "github",
-      "owner": "YOUR_GITHUB_USERNAME",
+      "owner": "Kali-ai007",
       "repo": "study-vault"
     },
     "nsis": {
@@ -40,6 +48,7 @@
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8",
     "electron-vite": "^2.3.0",
+    "playwright-core": "^1.61.1",
     "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

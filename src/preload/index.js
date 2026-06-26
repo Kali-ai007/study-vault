@@ -5,6 +5,7 @@ const api = {
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
   getCourses: () => ipcRenderer.invoke('db:getCourses'),
   createCourse: (data) => ipcRenderer.invoke('db:createCourse', data),
+  updateCourse: (data) => ipcRenderer.invoke('db:updateCourse', data),
   deleteCourse: (id) => ipcRenderer.invoke('db:deleteCourse', id),
   getTopics: (courseId) => ipcRenderer.invoke('db:getTopics', courseId),
   insertTopics: (data) => ipcRenderer.invoke('db:insertTopics', data),
