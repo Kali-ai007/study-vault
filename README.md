@@ -77,3 +77,15 @@ ollama pull mistral
 ```
 
 The app checks `127.0.0.1:11434`. If Quiz or Stats says Ollama is offline, open Ollama or run `ollama serve`, then press the in-app check/analyze button again.
+
+
+<img width="1177" height="1127" alt="Screenshot 2026-06-25 193505" src="https://github.com/user-attachments/assets/1ee8ac2b-0dc6-468f-99ce-e809bda4e94c" />
+<img width="1095" height="1121" alt="Screenshot 2026-06-25 193501" src="https://github.com/user-attachments/assets/d5f80e67-35b2-491c-af9c-dc423ad84fdb" />
+<img width="3835" height="1118" alt="Screenshot 2026-06-25 193454" src="https://github.com/user-attachments/assets/a809da8e-190e-46ac-99c5-13721f04868c" />
+<img width="3492" height="457" alt="Screenshot 2026-06-25 193447" src="https://github.com/user-attachments/assets/012cf089-2c58-4d56-9b84-1717f9651f26" />
+<img width="3837" height="1922" alt="Screenshot 2026-06-25 193442" src="https://github.com/user-attachments/assets/4308c2b6-59f9-4fec-bad2-ca3bc5b9dd23" />
+<img width="3837" height="1817" alt="Screenshot 2026-06-25 193431" src="https://github.com/user-attachments/assets/1a401497-f61f-4c89-9790-d21786ff1df3" />
+<img width="3833" height="2031" alt="Screenshot 2026-06-25 193421" src="https://github.com/user-attachments/assets/2bbf8c16-1e61-48f6-b728-7cf5f2629f50" />
+<img width="3835" height="2023" alt="Screenshot 2026-06-25 193416" src="https://github.com/user-attachments/assets/320e7489-8565-4acd-8280-91345b262119" />
+<img width="3828" height="1657" alt="Screenshot 2026-06-25 193409" src="https://github.com/user-attachments/assets/f8b72f86-6e80-4092-95d9-3022308d7e15" />
+
