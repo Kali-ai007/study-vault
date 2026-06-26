@@ -1,6 +1,6 @@
 # Study Vault
 
-An offline-first Electron study planner inspired by Shovel/Todoist workflows, built for course imports, AI-assisted structure, workload planning, quiz practice, and study analytics.
+An offline-first Electron study planner built for course imports, AI-assisted structure, workload planning, quiz practice, and study analytics.
 
 ## Features
 
