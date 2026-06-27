@@ -7,7 +7,7 @@ An offline-first Electron study planner built for course imports, AI-assisted st
 - Import course content from PDF, Markdown, JSON, or text.
 - Split course material into study sections.
 - Build study tasks from course sections.
-- Shovel-style auto-planning into available study windows.
+- Capacity-aware auto-planning into available study windows.
 - Fixed schedule blocks and one-off exceptions.
 - Exam date, cushion, pace, workload forecast, and readiness analytics.
 - Task-level timer, study logs, subtasks, and spaced review task creation.

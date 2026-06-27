@@ -236,7 +236,7 @@ flowchart TD
 
 The critical design choice is idempotent task creation. Topic-derived tasks use stable source keys so rebuilding tasks does not create a junk pile of duplicates.
 
-## Activity Diagram: Shovel-Style Planning
+## Activity Diagram: Capacity-Aware Planning
 
 ```mermaid
 flowchart TD
@@ -714,7 +714,7 @@ flowchart LR
   Shell --> Stats
   Shell --> Quiz
 
-  Today --> Planner["Shovel-style Planner"]
+  Today --> Planner["Smart Study Planner"]
   Today --> TaskList["Assigned Task List"]
   Today --> LogPanel["Log Session Panel"]
   Today --> TaskModal["Task Modal"]

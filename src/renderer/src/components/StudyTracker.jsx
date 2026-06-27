@@ -843,11 +843,11 @@ export default function StudyTracker({ examDate: appExamDate, onExamDateChange, 
         <div className={`metric-card cushion ${cushionState}`}><span>Cushion</span><strong>{hoursLabel(cushion)}</strong></div>
       </div>
 
-      <section className="panel shovel-planner">
+      <section className="panel study-planner">
         <div className="planner-head">
           <div>
-            <h2>Shovel-style plan</h2>
-            <p>Turns due dates into do dates by fitting your tasks into study windows.</p>
+            <h2>Smart study plan</h2>
+            <p>Builds your study schedule by fitting tasks into available study windows.</p>
           </div>
           <div className="planner-primary-actions">
             <button className="primary-btn planner-auto-btn" onClick={generatePlan} disabled={planning}>

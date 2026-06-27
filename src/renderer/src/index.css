@@ -575,7 +575,7 @@ h3 {
 .metric-card.cushion.danger strong { color: var(--danger); }
 .metric-card.readiness-mini strong { color: var(--accent); }
 
-.shovel-planner {
+.study-planner {
   margin-bottom: 18px;
   border-color: rgba(109, 93, 252, 0.16);
 }
